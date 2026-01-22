@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import Providers from "@/components/Providers";
 
 const siteUrl = "https://ten-omega26.vercel.app";
 
@@ -88,7 +89,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <Script
           id="organization-schema"
           type="application/ld+json"

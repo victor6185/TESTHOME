@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import { getProducts, seedProducts, Product } from '@/lib/firestore';
 
-// 샘플 상품 데이터
-const products = [
+// 폴백용 샘플 상품 데이터
+const fallbackProducts = [
   {
-    id: 1,
+    id: '1',
     name: '나이키 에어맥스 97 실버불릿',
     brand: 'Nike',
     category: '스니커즈',
@@ -15,9 +17,11 @@ const products = [
     image: '👟',
     country: '미국',
     badge: 'HOT',
+    description: '',
+    specs: [],
   },
   {
-    id: 2,
+    id: '2',
     name: '샤넬 클래식 플랩백 미디움',
     brand: 'Chanel',
     category: '명품가방',
@@ -26,9 +30,11 @@ const products = [
     image: '👜',
     country: '프랑스',
     badge: 'LUXURY',
+    description: '',
+    specs: [],
   },
   {
-    id: 3,
+    id: '3',
     name: '라메르 크림 60ml',
     brand: 'La Mer',
     category: '화장품',
@@ -37,9 +43,11 @@ const products = [
     image: '💄',
     country: '미국',
     badge: 'SALE',
+    description: '',
+    specs: [],
   },
   {
-    id: 4,
+    id: '4',
     name: '애플 아이폰 16 Pro Max 256GB',
     brand: 'Apple',
     category: '전자기기',
@@ -48,56 +56,69 @@ const products = [
     image: '📱',
     country: '미국',
     badge: 'NEW',
+    description: '',
+    specs: [],
   },
   {
-    id: 5,
-    name: '발렌시아가 트리플S 스니커즈',
-    brand: 'Balenciaga',
-    category: '스니커즈',
-    price: 890000,
-    originalPrice: 1100000,
-    image: '👟',
-    country: '이탈리아',
-    badge: '',
-  },
-  {
-    id: 6,
-    name: '닌텐도 스위치 2 콘솔',
-    brand: 'Nintendo',
-    category: '게임/완구',
-    price: 450000,
-    originalPrice: 520000,
-    image: '🎮',
-    country: '일본',
-    badge: 'HOT',
-  },
-  {
-    id: 7,
-    name: '구찌 GG 마몽 미니백',
-    brand: 'Gucci',
-    category: '명품가방',
-    price: 1890000,
-    originalPrice: 2300000,
-    image: '👜',
-    country: '이탈리아',
-    badge: '',
-  },
-  {
-    id: 8,
-    name: '에스티로더 갈색병 에센스 100ml',
-    brand: 'Estee Lauder',
-    category: '화장품',
-    price: 145000,
-    originalPrice: 189000,
-    image: '💄',
-    country: '미국',
-    badge: 'SALE',
+    id: '99',
+    name: '테스트 상품 (결제 테스트용)',
+    brand: 'TEST',
+    category: '테스트',
+    price: 100,
+    originalPrice: 1000,
+    image: '🧪',
+    country: '한국',
+    badge: 'TEST',
+    description: '토스페이먼츠 결제 테스트를 위한 100원 상품입니다.',
+    specs: ['결제 테스트용', '100원', '환불 가능', '테스트 전용'],
   },
 ];
 
-const categories = ['전체', '스니커즈', '명품가방', '화장품', '전자기기', '게임/완구', '의류'];
+const categories = ['전체', '스니커즈', '명품가방', '화장품', '전자기기', '게임/완구', '테스트'];
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('전체');
+  const [seeding, setSeeding] = useState(false);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const data = await getProducts();
+      if (data.length === 0) {
+        // Firestore가 비어있으면 폴백 데이터 사용
+        setProducts(fallbackProducts);
+      } else {
+        setProducts(data);
+      }
+    } catch (error) {
+      console.error('상품 로드 실패:', error);
+      // 에러 시 폴백 데이터 사용
+      setProducts(fallbackProducts);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSeedProducts = async () => {
+    if (seeding) return;
+    setSeeding(true);
+    try {
+      await seedProducts();
+      await loadProducts();
+      alert('상품 데이터가 Firestore에 추가되었습니다!');
+    } catch (error) {
+      console.error('시딩 실패:', error);
+      alert('상품 데이터 추가 중 오류가 발생했습니다.');
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const formatPrice = (price: number) => {
     return price.toLocaleString('ko-KR');
   };
@@ -105,6 +126,10 @@ export default function ProductsPage() {
   const getDiscount = (original: number, current: number) => {
     return Math.round((1 - current / original) * 100);
   };
+
+  const filteredProducts = selectedCategory === '전체'
+    ? products
+    : products.filter(p => p.category === selectedCategory);
 
   return (
     <div className="page-container">
@@ -122,7 +147,11 @@ export default function ProductsPage() {
           <div className="container">
             <div className="categories-filter">
               {categories.map((cat) => (
-                <button key={cat} className="filter-btn">
+                <button
+                  key={cat}
+                  className={`filter-btn ${selectedCategory === cat ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat)}
+                >
                   {cat}
                 </button>
               ))}
@@ -133,39 +162,60 @@ export default function ProductsPage() {
         {/* Products Grid */}
         <section className="products-section">
           <div className="container">
-            <div className="products-grid">
-              {products.map((product) => (
-                <Link href={`/products/${product.id}`} key={product.id} className="product-card">
-                  {product.badge && (
-                    <span className={`badge badge-${product.badge.toLowerCase()}`}>
-                      {product.badge}
-                    </span>
-                  )}
-                  <div className="product-image">
-                    <span>{product.image}</span>
+            {loading ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>상품을 불러오는 중...</p>
+              </div>
+            ) : (
+              <>
+                {products.length === 0 && (
+                  <div className="empty-state">
+                    <p>등록된 상품이 없습니다.</p>
+                    <button
+                      onClick={handleSeedProducts}
+                      className="seed-btn"
+                      disabled={seeding}
+                    >
+                      {seeding ? '추가 중...' : '샘플 상품 추가하기'}
+                    </button>
                   </div>
-                  <div className="product-info">
-                    <span className="product-brand">{product.brand}</span>
-                    <h3 className="product-name">{product.name}</h3>
-                    <div className="product-meta">
-                      <span className="country">🌍 {product.country}</span>
-                      <span className="category">{product.category}</span>
-                    </div>
-                    <div className="product-price">
-                      <span className="discount">
-                        {getDiscount(product.originalPrice, product.price)}%
-                      </span>
-                      <span className="current-price">
-                        ₩{formatPrice(product.price)}
-                      </span>
-                      <span className="original-price">
-                        ₩{formatPrice(product.originalPrice)}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                )}
+                <div className="products-grid">
+                  {filteredProducts.map((product) => (
+                    <Link href={`/products/${product.id}`} key={product.id} className="product-card">
+                      {product.badge && (
+                        <span className={`badge badge-${product.badge.toLowerCase()}`}>
+                          {product.badge}
+                        </span>
+                      )}
+                      <div className="product-image">
+                        <span>{product.image}</span>
+                      </div>
+                      <div className="product-info">
+                        <span className="product-brand">{product.brand}</span>
+                        <h3 className="product-name">{product.name}</h3>
+                        <div className="product-meta">
+                          <span className="country">🌍 {product.country}</span>
+                          <span className="category">{product.category}</span>
+                        </div>
+                        <div className="product-price">
+                          <span className="discount">
+                            {getDiscount(product.originalPrice, product.price)}%
+                          </span>
+                          <span className="current-price">
+                            ₩{formatPrice(product.price)}
+                          </span>
+                          <span className="original-price">
+                            ₩{formatPrice(product.originalPrice)}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </section>
 
@@ -239,15 +289,70 @@ export default function ProductsPage() {
           transition: all 0.3s;
         }
 
-        .filter-btn:first-child {
+        .filter-btn.active {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
         }
 
-        .filter-btn:hover {
+        .filter-btn:hover:not(.active) {
           border-color: #667eea;
           color: white;
+        }
+
+        .loading-state {
+          text-align: center;
+          padding: 4rem;
+        }
+
+        .spinner {
+          width: 48px;
+          height: 48px;
+          border: 4px solid #27272a;
+          border-top-color: #667eea;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .loading-state p {
+          color: #a1a1aa;
+        }
+
+        .empty-state {
+          text-align: center;
+          padding: 4rem;
+        }
+
+        .empty-state p {
+          color: #a1a1aa;
+          margin-bottom: 1.5rem;
+        }
+
+        .seed-btn {
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+        }
+
+        .seed-btn:hover:not(:disabled) {
+          transform: scale(1.05);
+        }
+
+        .seed-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
         }
 
         .products-section {
@@ -305,6 +410,11 @@ export default function ProductsPage() {
 
         .badge-luxury {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+        }
+
+        .badge-test {
+          background: #71717a;
           color: white;
         }
 

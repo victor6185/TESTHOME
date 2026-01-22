@@ -1,39 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-
-// 샘플 주문 데이터
-const sampleOrders = [
-  {
-    id: 'ORD-2024-001',
-    date: '2024-01-15',
-    product: '나이키 에어맥스 97 실버불릿',
-    price: 189000,
-    status: '배송완료',
-    statusColor: '#22c55e',
-  },
-  {
-    id: 'ORD-2024-002',
-    date: '2024-01-18',
-    product: '라메르 크림 60ml',
-    price: 320000,
-    status: '배송중',
-    statusColor: '#3b82f6',
-  },
-  {
-    id: 'ORD-2024-003',
-    date: '2024-01-20',
-    product: '애플 아이폰 16 Pro Max',
-    price: 1590000,
-    status: '구매대행중',
-    statusColor: '#f59e0b',
-  },
-];
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserOrders, Order, getUserAddresses, Address, updateUser } from '@/lib/firestore';
 
 export default function MyPage() {
+  const router = useRouter();
+  const { firebaseUser, user, loading: authLoading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('orders');
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    newPassword: '',
+  });
+  const [saving, setSaving] = useState(false);
 
   const tabs = [
     { id: 'orders', label: '주문 내역', icon: '📦' },
@@ -41,6 +27,140 @@ export default function MyPage() {
     { id: 'address', label: '배송지 관리', icon: '📍' },
     { id: 'wishlist', label: '찜 목록', icon: '❤️' },
   ];
+
+  useEffect(() => {
+    if (!authLoading && !firebaseUser) {
+      router.push('/login');
+    }
+  }, [authLoading, firebaseUser, router]);
+
+  useEffect(() => {
+    if (firebaseUser) {
+      loadUserData();
+    }
+  }, [firebaseUser]);
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        phone: user.phone || '',
+        newPassword: '',
+      });
+    }
+  }, [user]);
+
+  const loadUserData = async () => {
+    if (!firebaseUser) return;
+
+    try {
+      const [ordersData, addressesData] = await Promise.all([
+        getUserOrders(firebaseUser.uid),
+        getUserAddresses(firebaseUser.uid),
+      ]);
+      setOrders(ordersData);
+      setAddresses(addressesData);
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
+  };
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firebaseUser) return;
+
+    setSaving(true);
+    try {
+      await updateUser(firebaseUser.uid, {
+        name: profileForm.name,
+        phone: profileForm.phone,
+      });
+      alert('회원 정보가 저장되었습니다.');
+    } catch (error) {
+      console.error('저장 실패:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case '결제완료': return '#3b82f6';
+      case '구매대행중': return '#f59e0b';
+      case '배송중': return '#22c55e';
+      case '배송완료': return '#22c55e';
+      case '취소': return '#ef4444';
+      default: return '#71717a';
+    }
+  };
+
+  const formatDate = (timestamp: unknown): string => {
+    if (!timestamp) return '-';
+    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
+      return (timestamp as { toDate: () => Date }).toDate().toLocaleDateString('ko-KR');
+    }
+    return '-';
+  };
+
+  const totalAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+  if (authLoading || loading) {
+    return (
+      <div className="page-container">
+        <Header />
+        <main className="loading-main">
+          <div className="spinner"></div>
+          <p>로딩 중...</p>
+        </main>
+        <style jsx>{`
+          .page-container {
+            min-height: 100vh;
+            background: #0a0a0a;
+          }
+          .loading-main {
+            padding-top: 150px;
+            text-align: center;
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #27272a;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .loading-main p {
+            color: #a1a1aa;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (!firebaseUser) {
+    return null;
+  }
 
   return (
     <div className="page-container">
@@ -50,22 +170,24 @@ export default function MyPage() {
         <div className="container">
           {/* User Info Summary */}
           <div className="user-summary">
-            <div className="user-avatar">👤</div>
+            <div className="user-avatar">
+              {user?.name?.charAt(0) || firebaseUser.email?.charAt(0)?.toUpperCase() || '👤'}
+            </div>
             <div className="user-info">
-              <h1>홍길동님, 안녕하세요!</h1>
-              <p>example@email.com</p>
+              <h1>{user?.name || '회원'}님, 안녕하세요!</h1>
+              <p>{firebaseUser.email}</p>
             </div>
             <div className="user-stats">
               <div className="stat">
-                <span className="stat-value">3</span>
+                <span className="stat-value">{orders.length}</span>
                 <span className="stat-label">총 주문</span>
               </div>
               <div className="stat">
-                <span className="stat-value">₩2,099,000</span>
+                <span className="stat-value">₩{totalAmount.toLocaleString()}</span>
                 <span className="stat-label">총 구매금액</span>
               </div>
               <div className="stat">
-                <span className="stat-value">Silver</span>
+                <span className="stat-value">{user?.grade || 'Silver'}</span>
                 <span className="stat-label">회원 등급</span>
               </div>
             </div>
@@ -84,9 +206,9 @@ export default function MyPage() {
                   {tab.label}
                 </button>
               ))}
-              <Link href="/login" className="logout-btn">
+              <button onClick={handleLogout} className="logout-btn">
                 로그아웃
-              </Link>
+              </button>
             </aside>
 
             {/* Main Content */}
@@ -94,55 +216,75 @@ export default function MyPage() {
               {activeTab === 'orders' && (
                 <div className="orders-section">
                   <h2>주문 내역</h2>
-                  <div className="orders-list">
-                    {sampleOrders.map((order) => (
-                      <div key={order.id} className="order-card">
-                        <div className="order-header">
-                          <span className="order-id">{order.id}</span>
-                          <span className="order-date">{order.date}</span>
+                  {orders.length === 0 ? (
+                    <div className="empty-state">
+                      <p>주문 내역이 없습니다.</p>
+                      <Link href="/products" className="shop-btn">쇼핑하러 가기</Link>
+                    </div>
+                  ) : (
+                    <div className="orders-list">
+                      {orders.map((order) => (
+                        <div key={order.id} className="order-card">
+                          <div className="order-header">
+                            <span className="order-id">{order.orderId}</span>
+                            <span className="order-date">{formatDate(order.createdAt)}</span>
+                          </div>
+                          <div className="order-body">
+                            <span className="order-product">{order.productName}</span>
+                            <span className="order-price">
+                              ₩{order.totalAmount.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="order-footer">
+                            <span
+                              className="order-status"
+                              style={{ color: getStatusColor(order.status) }}
+                            >
+                              {order.status}
+                            </span>
+                            <button className="detail-btn">상세보기</button>
+                          </div>
                         </div>
-                        <div className="order-body">
-                          <span className="order-product">{order.product}</span>
-                          <span className="order-price">
-                            ₩{order.price.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="order-footer">
-                          <span
-                            className="order-status"
-                            style={{ color: order.statusColor }}
-                          >
-                            {order.status}
-                          </span>
-                          <button className="detail-btn">상세보기</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
               {activeTab === 'profile' && (
                 <div className="profile-section">
                   <h2>회원 정보</h2>
-                  <form className="profile-form">
+                  <form className="profile-form" onSubmit={handleProfileSubmit}>
                     <div className="form-group">
                       <label>이름</label>
-                      <input type="text" defaultValue="홍길동" />
+                      <input
+                        type="text"
+                        name="name"
+                        value={profileForm.name}
+                        onChange={handleProfileChange}
+                      />
                     </div>
                     <div className="form-group">
                       <label>이메일</label>
-                      <input type="email" defaultValue="example@email.com" disabled />
+                      <input
+                        type="email"
+                        value={firebaseUser.email || ''}
+                        disabled
+                      />
                     </div>
                     <div className="form-group">
                       <label>연락처</label>
-                      <input type="tel" defaultValue="010-1234-5678" />
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={profileForm.phone}
+                        onChange={handleProfileChange}
+                        placeholder="010-1234-5678"
+                      />
                     </div>
-                    <div className="form-group">
-                      <label>비밀번호 변경</label>
-                      <input type="password" placeholder="새 비밀번호" />
-                    </div>
-                    <button type="submit" className="save-btn">저장하기</button>
+                    <button type="submit" className="save-btn" disabled={saving}>
+                      {saving ? '저장 중...' : '저장하기'}
+                    </button>
                   </form>
                 </div>
               )}
@@ -150,17 +292,25 @@ export default function MyPage() {
               {activeTab === 'address' && (
                 <div className="address-section">
                   <h2>배송지 관리</h2>
-                  <div className="address-card default">
-                    <div className="address-badge">기본 배송지</div>
-                    <h3>홍길동</h3>
-                    <p>010-1234-5678</p>
-                    <p>서울특별시 강남구 테헤란로 123</p>
-                    <p>00빌딩 5층</p>
-                    <div className="address-actions">
-                      <button>수정</button>
-                      <button>삭제</button>
+                  {addresses.length === 0 ? (
+                    <div className="empty-state">
+                      <p>등록된 배송지가 없습니다.</p>
                     </div>
-                  </div>
+                  ) : (
+                    addresses.map((addr) => (
+                      <div key={addr.id} className={`address-card ${addr.isDefault ? 'default' : ''}`}>
+                        {addr.isDefault && <div className="address-badge">기본 배송지</div>}
+                        <h3>{addr.name}</h3>
+                        <p>{addr.phone}</p>
+                        <p>{addr.address}</p>
+                        <p>{addr.detail}</p>
+                        <div className="address-actions">
+                          <button>수정</button>
+                          <button>삭제</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                   <button className="add-address-btn">+ 새 배송지 추가</button>
                 </div>
               )}
@@ -168,25 +318,9 @@ export default function MyPage() {
               {activeTab === 'wishlist' && (
                 <div className="wishlist-section">
                   <h2>찜 목록</h2>
-                  <div className="wishlist-grid">
-                    <div className="wishlist-item">
-                      <div className="item-image">👟</div>
-                      <div className="item-info">
-                        <span className="item-brand">Nike</span>
-                        <span className="item-name">나이키 에어맥스 97</span>
-                        <span className="item-price">₩189,000</span>
-                      </div>
-                      <button className="remove-btn">❌</button>
-                    </div>
-                    <div className="wishlist-item">
-                      <div className="item-image">👜</div>
-                      <div className="item-info">
-                        <span className="item-brand">Gucci</span>
-                        <span className="item-name">GG 마몽 미니백</span>
-                        <span className="item-price">₩1,890,000</span>
-                      </div>
-                      <button className="remove-btn">❌</button>
-                    </div>
+                  <div className="empty-state">
+                    <p>찜한 상품이 없습니다.</p>
+                    <Link href="/products" className="shop-btn">쇼핑하러 가기</Link>
                   </div>
                 </div>
               )}
@@ -317,6 +451,7 @@ export default function MyPage() {
           text-decoration: none;
           text-align: center;
           font-size: 1rem;
+          cursor: pointer;
           transition: all 0.3s;
         }
 
@@ -335,6 +470,26 @@ export default function MyPage() {
         .main-content h2 {
           font-size: 1.5rem;
           margin-bottom: 1.5rem;
+        }
+
+        .empty-state {
+          text-align: center;
+          padding: 3rem;
+          color: #71717a;
+        }
+
+        .empty-state p {
+          margin-bottom: 1rem;
+        }
+
+        .shop-btn {
+          display: inline-block;
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          text-decoration: none;
+          border-radius: 8px;
+          font-weight: 600;
         }
 
         /* Orders */
@@ -360,6 +515,7 @@ export default function MyPage() {
         .order-id {
           font-weight: 600;
           color: #667eea;
+          font-size: 0.9rem;
         }
 
         .order-date {
@@ -454,8 +610,13 @@ export default function MyPage() {
           transition: transform 0.2s;
         }
 
-        .save-btn:hover {
+        .save-btn:hover:not(:disabled) {
           transform: scale(1.02);
+        }
+
+        .save-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
         }
 
         /* Address */
@@ -530,68 +691,6 @@ export default function MyPage() {
         .add-address-btn:hover {
           border-color: #667eea;
           color: white;
-        }
-
-        /* Wishlist */
-        .wishlist-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .wishlist-item {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          background: #0f0f0f;
-          border: 1px solid #27272a;
-          border-radius: 12px;
-          padding: 1rem;
-        }
-
-        .item-image {
-          width: 80px;
-          height: 80px;
-          background: #1a1a1a;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2.5rem;
-        }
-
-        .item-info {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .item-brand {
-          color: #667eea;
-          font-size: 0.85rem;
-          font-weight: 600;
-        }
-
-        .item-name {
-          font-weight: 500;
-        }
-
-        .item-price {
-          font-weight: 700;
-        }
-
-        .remove-btn {
-          background: none;
-          border: none;
-          font-size: 1.25rem;
-          cursor: pointer;
-          opacity: 0.6;
-          transition: opacity 0.3s;
-        }
-
-        .remove-btn:hover {
-          opacity: 1;
         }
 
         @media (max-width: 768px) {

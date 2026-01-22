@@ -2,9 +2,19 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { firebaseUser, user, loading, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
+  };
 
   return (
     <header className="header">
@@ -20,8 +30,26 @@ export default function Header() {
         </nav>
 
         <div className="auth-buttons">
-          <Link href="/login" className="btn-login">로그인</Link>
-          <Link href="/signup" className="btn-signup">회원가입</Link>
+          {loading ? (
+            <span className="loading-text">로딩중...</span>
+          ) : firebaseUser ? (
+            <div className="user-menu">
+              <Link href="/mypage" className="user-info">
+                <span className="user-avatar">
+                  {user?.name?.charAt(0) || firebaseUser.email?.charAt(0)?.toUpperCase() || '?'}
+                </span>
+                <span className="user-name">{user?.name || firebaseUser.email}</span>
+              </Link>
+              <button onClick={handleLogout} className="btn-logout">
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link href="/login" className="btn-login">로그인</Link>
+              <Link href="/signup" className="btn-signup">회원가입</Link>
+            </>
+          )}
         </div>
 
         <button
@@ -86,6 +114,73 @@ export default function Header() {
           display: flex;
           gap: 1rem;
           align-items: center;
+        }
+
+        .loading-text {
+          color: #71717a;
+          font-size: 0.9rem;
+        }
+
+        .user-menu {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          text-decoration: none;
+          padding: 0.375rem 0.75rem;
+          border-radius: 25px;
+          background: rgba(102, 126, 234, 0.1);
+          border: 1px solid rgba(102, 126, 234, 0.3);
+          transition: all 0.3s;
+        }
+
+        .user-info:hover {
+          background: rgba(102, 126, 234, 0.2);
+          border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .user-avatar {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          font-weight: 700;
+        }
+
+        .user-name {
+          color: #e5e5e5;
+          font-size: 0.9rem;
+          font-weight: 500;
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .btn-logout {
+          background: none;
+          border: 1px solid #3f3f46;
+          color: #a1a1aa;
+          font-size: 0.85rem;
+          padding: 0.375rem 0.75rem;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+          color: #ef4444;
+          border-color: #ef4444;
         }
 
         .btn-login {

@@ -5,23 +5,13 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { loadTossPayments, TossPaymentsInstance } from '@tosspayments/tosspayments-sdk';
+import { getProduct, Product, createOrder } from '@/lib/firestore';
+import { useAuth } from '@/contexts/AuthContext';
 
-// 샘플 상품 데이터
-const productsData: Record<number, {
-  id: number;
-  name: string;
-  brand: string;
-  category: string;
-  price: number;
-  originalPrice: number;
-  image: string;
-  country: string;
-  badge: string;
-  description: string;
-  specs: string[];
-}> = {
-  1: {
-    id: 1,
+// 폴백용 상품 데이터
+const fallbackProducts: Record<string, Product> = {
+  '1': {
+    id: '1',
     name: '나이키 에어맥스 97 실버불릿',
     brand: 'Nike',
     category: '스니커즈',
@@ -30,11 +20,11 @@ const productsData: Record<number, {
     image: '👟',
     country: '미국',
     badge: 'HOT',
-    description: '1997년 첫 출시 이후 아이코닉한 디자인으로 사랑받는 나이키 에어맥스 97. 실버불릿 컬러웨이는 가장 인기 있는 모델 중 하나입니다. 풀 렝스 에어 유닛이 탁월한 쿠셔닝을 제공합니다.',
+    description: '1997년 첫 출시 이후 아이코닉한 디자인으로 사랑받는 나이키 에어맥스 97.',
     specs: ['풀 렝스 에어 유닛', '메쉬 & 합성 소재 어퍼', '고무 밑창', '리플렉티브 디테일'],
   },
-  2: {
-    id: 2,
+  '2': {
+    id: '2',
     name: '샤넬 클래식 플랩백 미디움',
     brand: 'Chanel',
     category: '명품가방',
@@ -43,11 +33,11 @@ const productsData: Record<number, {
     image: '👜',
     country: '프랑스',
     badge: 'LUXURY',
-    description: '샤넬의 시그니처 클래식 플랩백. 타임리스한 디자인과 최상의 퀄리티로 모든 여성의 드림백으로 손꼽히는 아이템입니다. 캐비어 가죽과 금장 체인이 특징입니다.',
+    description: '샤넬의 시그니처 클래식 플랩백.',
     specs: ['캐비어 가죽', '골드 체인 스트랩', '더블 플랩 디자인', '버건디 레더 안감'],
   },
-  3: {
-    id: 3,
+  '3': {
+    id: '3',
     name: '라메르 크림 60ml',
     brand: 'La Mer',
     category: '화장품',
@@ -56,11 +46,11 @@ const productsData: Record<number, {
     image: '💄',
     country: '미국',
     badge: 'SALE',
-    description: '전설적인 미라클 브로스를 함유한 라메르 크림. 깊은 보습과 영양 공급으로 피부를 건강하게 가꿔줍니다. 모든 피부 타입에 적합합니다.',
+    description: '전설적인 미라클 브로스를 함유한 라메르 크림.',
     specs: ['미라클 브로스 함유', '60ml 용량', '올 스킨 타입', '집중 보습 케어'],
   },
-  4: {
-    id: 4,
+  '4': {
+    id: '4',
     name: '애플 아이폰 16 Pro Max 256GB',
     brand: 'Apple',
     category: '전자기기',
@@ -69,60 +59,21 @@ const productsData: Record<number, {
     image: '📱',
     country: '미국',
     badge: 'NEW',
-    description: '애플의 최신 플래그십 스마트폰. A18 Pro 칩셋과 향상된 카메라 시스템, 그리고 더 커진 디스플레이로 최고의 모바일 경험을 제공합니다.',
+    description: '애플의 최신 플래그십 스마트폰.',
     specs: ['A18 Pro 칩셋', '6.9인치 Super Retina XDR', '48MP 메인 카메라', '256GB 저장공간'],
   },
-  5: {
-    id: 5,
-    name: '발렌시아가 트리플S 스니커즈',
-    brand: 'Balenciaga',
-    category: '스니커즈',
-    price: 890000,
-    originalPrice: 1100000,
-    image: '👟',
-    country: '이탈리아',
-    badge: '',
-    description: '어글리 슈즈 트렌드를 이끈 발렌시아가의 아이코닉 스니커즈. 청키한 솔과 레이어드 디자인이 특징이며, 편안한 착용감을 제공합니다.',
-    specs: ['트리플 솔 디자인', '이탈리아 제작', '소가죽 & 메쉬', '로고 자수'],
-  },
-  6: {
-    id: 6,
-    name: '닌텐도 스위치 2 콘솔',
-    brand: 'Nintendo',
-    category: '게임/완구',
-    price: 450000,
-    originalPrice: 520000,
-    image: '🎮',
-    country: '일본',
-    badge: 'HOT',
-    description: '닌텐도의 차세대 하이브리드 게임 콘솔. 더 강력한 성능과 향상된 디스플레이로 집에서도 이동 중에도 최고의 게임 경험을 제공합니다.',
-    specs: ['8인치 OLED 디스플레이', '4K 독 출력', '향상된 조이콘', '64GB 내장 메모리'],
-  },
-  7: {
-    id: 7,
-    name: '구찌 GG 마몽 미니백',
-    brand: 'Gucci',
-    category: '명품가방',
-    price: 1890000,
-    originalPrice: 2300000,
-    image: '👜',
-    country: '이탈리아',
-    badge: '',
-    description: '구찌의 시그니처 GG 마몽 라인. 더블 G 하드웨어와 소프트한 마틀라세 가죽이 특징입니다. 다양한 스타일링에 어울리는 미니 사이즈입니다.',
-    specs: ['마틀라세 가죽', '더블 G 장식', '체인 스트랩', '마이크로파이버 안감'],
-  },
-  8: {
-    id: 8,
-    name: '에스티로더 갈색병 에센스 100ml',
-    brand: 'Estee Lauder',
-    category: '화장품',
-    price: 145000,
-    originalPrice: 189000,
-    image: '💄',
-    country: '미국',
-    badge: 'SALE',
-    description: '에스티로더의 베스트셀러 갈색병 에센스. 밤 사이 피부 재생을 돕고, 다음 날 아침 더욱 밝고 건강한 피부로 깨어나게 합니다.',
-    specs: ['크로노럭스 테크놀로지', '100ml 대용량', '피부 장벽 강화', '안티에이징 케어'],
+  '99': {
+    id: '99',
+    name: '테스트 상품 (결제 테스트용)',
+    brand: 'TEST',
+    category: '테스트',
+    price: 100,
+    originalPrice: 1000,
+    image: '🧪',
+    country: '한국',
+    badge: 'TEST',
+    description: '토스페이먼츠 결제 테스트를 위한 100원 상품입니다.',
+    specs: ['결제 테스트용', '100원', '환불 가능', '테스트 전용'],
   },
 };
 
@@ -130,15 +81,20 @@ const CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_P9BRQmyar
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const productId = Number(params.id);
-  const product = productsData[productId];
+  const productId = params.id as string;
+  const { firebaseUser } = useAuth();
 
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [tossPayments, setTossPayments] = useState<TossPaymentsInstance | null>(null);
 
   useEffect(() => {
-    // 토스페이먼츠 SDK 초기화
+    loadProduct();
+  }, [productId]);
+
+  useEffect(() => {
     const initTossPayments = async () => {
       try {
         const toss = await loadTossPayments(CLIENT_KEY);
@@ -150,6 +106,67 @@ export default function ProductDetailPage() {
 
     initTossPayments();
   }, []);
+
+  const loadProduct = async () => {
+    try {
+      const data = await getProduct(productId);
+      if (data) {
+        setProduct(data);
+      } else {
+        // Firestore에 없으면 폴백 데이터 사용
+        const fallback = fallbackProducts[productId];
+        if (fallback) {
+          setProduct(fallback);
+        }
+      }
+    } catch (error) {
+      console.error('상품 로드 실패:', error);
+      // 에러 시 폴백 데이터 사용
+      const fallback = fallbackProducts[productId];
+      if (fallback) {
+        setProduct(fallback);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="page-container">
+        <Header />
+        <main className="loading-main">
+          <div className="spinner"></div>
+          <p>상품을 불러오는 중...</p>
+        </main>
+        <style jsx>{`
+          .page-container {
+            min-height: 100vh;
+            background: #0a0a0a;
+          }
+          .loading-main {
+            padding-top: 150px;
+            text-align: center;
+          }
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #27272a;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .loading-main p {
+            color: #a1a1aa;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -195,10 +212,21 @@ export default function ProductDetailPage() {
     setIsPaymentLoading(true);
 
     try {
-      // 주문 ID 생성
       const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // 결제창 호출
+      // Firestore에 주문 생성 (결제 전)
+      if (firebaseUser) {
+        await createOrder({
+          userId: firebaseUser.uid,
+          productId: product.id || productId,
+          productName: product.name,
+          quantity: quantity,
+          totalAmount: totalPrice,
+          status: '결제완료',
+          orderId: orderId,
+        });
+      }
+
       const payment = tossPayments.payment({ customerKey: `CUSTOMER_${Date.now()}` });
 
       await payment.requestPayment({
@@ -211,7 +239,7 @@ export default function ProductDetailPage() {
         orderName: `${product.name} x ${quantity}`,
         successUrl: `${window.location.origin}/payment/success`,
         failUrl: `${window.location.origin}/payment/fail`,
-        customerEmail: 'customer@example.com',
+        customerEmail: firebaseUser?.email || 'customer@example.com',
         customerName: '구매자',
         card: {
           useEscrow: false,
@@ -224,7 +252,6 @@ export default function ProductDetailPage() {
       if (error && typeof error === 'object' && 'code' in error) {
         const tossError = error as { code: string; message: string };
         if (tossError.code === 'USER_CANCEL') {
-          // 사용자가 결제를 취소한 경우
           console.log('결제가 취소되었습니다.');
         } else {
           console.error('결제 오류:', tossError.message);
@@ -245,7 +272,6 @@ export default function ProductDetailPage() {
 
       <main className="product-main">
         <div className="container">
-          {/* Breadcrumb */}
           <nav className="breadcrumb">
             <Link href="/">홈</Link>
             <span>/</span>
@@ -254,7 +280,6 @@ export default function ProductDetailPage() {
             <span>{product.category}</span>
           </nav>
 
-          {/* Product Detail */}
           <div className="product-detail">
             <div className="product-image-section">
               {product.badge && (
@@ -408,6 +433,11 @@ export default function ProductDetailPage() {
 
         .badge-luxury {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+        }
+
+        .badge-test {
+          background: #71717a;
           color: white;
         }
 
