@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import { loadTossPayments, TossPaymentsInstance } from '@tosspayments/tosspayments-sdk';
 
 // 샘플 상품 데이터
 const productsData: Record<number, {
@@ -125,21 +126,7 @@ const productsData: Record<number, {
   },
 };
 
-declare global {
-  interface Window {
-    TossPayments: (clientKey: string) => {
-      requestPayment: (method: string, options: {
-        amount: { value: number; currency: string };
-        orderId: string;
-        orderName: string;
-        successUrl: string;
-        failUrl: string;
-        customerEmail?: string;
-        customerName?: string;
-      }) => Promise<void>;
-    };
-  }
-}
+const CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_P9BRQmyarY7mKPKDzmmN3J07KzLN';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -148,17 +135,20 @@ export default function ProductDetailPage() {
 
   const [quantity, setQuantity] = useState(1);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [tossPayments, setTossPayments] = useState<TossPaymentsInstance | null>(null);
 
   useEffect(() => {
-    // 토스페이먼츠 SDK 로드
-    const script = document.createElement('script');
-    script.src = 'https://js.tosspayments.com/v1/payment';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
+    // 토스페이먼츠 SDK 초기화
+    const initTossPayments = async () => {
+      try {
+        const toss = await loadTossPayments(CLIENT_KEY);
+        setTossPayments(toss);
+      } catch (error) {
+        console.error('토스페이먼츠 SDK 로딩 실패:', error);
+      }
     };
+
+    initTossPayments();
   }, []);
 
   if (!product) {
@@ -197,24 +187,22 @@ export default function ProductDetailPage() {
   const totalPrice = product.price * quantity;
 
   const handlePayment = async () => {
+    if (!tossPayments) {
+      alert('결제 모듈을 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
     setIsPaymentLoading(true);
 
     try {
-      // 토스페이먼츠 클라이언트 키 (테스트용)
-      const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
-
-      if (typeof window.TossPayments === 'undefined') {
-        alert('결제 모듈을 로딩 중입니다. 잠시 후 다시 시도해주세요.');
-        setIsPaymentLoading(false);
-        return;
-      }
-
-      const tossPayments = window.TossPayments(clientKey);
-
       // 주문 ID 생성
       const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      await tossPayments.requestPayment('카드', {
+      // 결제창 호출
+      const payment = tossPayments.payment({ customerKey: `CUSTOMER_${Date.now()}` });
+
+      await payment.requestPayment({
+        method: 'CARD',
         amount: {
           value: totalPrice,
           currency: 'KRW',
@@ -225,10 +213,27 @@ export default function ProductDetailPage() {
         failUrl: `${window.location.origin}/payment/fail`,
         customerEmail: 'customer@example.com',
         customerName: '구매자',
+        card: {
+          useEscrow: false,
+          flowMode: 'DEFAULT',
+          useCardPoint: false,
+          useAppCardOnly: false,
+        },
       });
-    } catch (error) {
-      console.error('결제 오류:', error);
-      alert('결제 중 오류가 발생했습니다.');
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        const tossError = error as { code: string; message: string };
+        if (tossError.code === 'USER_CANCEL') {
+          // 사용자가 결제를 취소한 경우
+          console.log('결제가 취소되었습니다.');
+        } else {
+          console.error('결제 오류:', tossError.message);
+          alert(`결제 중 오류가 발생했습니다: ${tossError.message}`);
+        }
+      } else {
+        console.error('결제 오류:', error);
+        alert('결제 중 오류가 발생했습니다.');
+      }
     } finally {
       setIsPaymentLoading(false);
     }
@@ -314,9 +319,9 @@ export default function ProductDetailPage() {
                 <button
                   className="buy-btn"
                   onClick={handlePayment}
-                  disabled={isPaymentLoading}
+                  disabled={isPaymentLoading || !tossPayments}
                 >
-                  {isPaymentLoading ? '처리 중...' : '바로 구매하기'}
+                  {isPaymentLoading ? '처리 중...' : !tossPayments ? '결제 준비 중...' : '바로 구매하기'}
                 </button>
                 <button className="cart-btn">장바구니</button>
               </div>
