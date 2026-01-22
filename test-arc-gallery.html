@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arc Gallery Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: white;
+            font-family: sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .test-info {
+            background: #1a1a1a;
+            padding: 1rem;
+            border-bottom: 1px solid #27272a;
+            text-align: center;
+        }
+
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .arc-gallery-container {
+            position: relative;
+            width: 100%;
+            height: 580px;
+            margin: 0 auto;
+            border: 2px dashed #3b82f6;
+        }
+
+        .arc-gallery-ring {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .arc-gallery-card {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .arc-gallery-card-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid #27272a;
+            background: #1a1a1a;
+            transition: transform 0.3s;
+        }
+
+        .arc-gallery-card-inner:hover {
+            transform: scale(1.05);
+        }
+
+        .arc-gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            margin-top: -180px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out 0.8s forwards;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: #a1a1aa;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 50%);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .debug-log {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .debug-log div {
+            margin-bottom: 4px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
+            .arc-gallery-container {
+                height: 350px;
+            }
+
+            .arc-gallery-card {
+                width: 80px;
+                height: 80px;
+            }
+
+            .hero-content {
+                margin-top: -100px;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h2>🧪 Arc Gallery Animation Test</h2>
+        <p>테스트 중... 콘솔을 확인하세요 (F12)</p>
+    </div>
+
+    <section class="hero">
+        <div class="arc-gallery-container">
+            <div class="arc-gallery-ring"></div>
+        </div>
+
+        <div class="hero-content">
+            <h1>Arc Gallery Hero</h1>
+            <p>10개의 제품 이미지가 호형으로 배치됩니다</p>
+        </div>
+    </section>
+
+    <div class="debug-log" id="debugLog"></div>
+
+    <script>
+        // Debug logger
+        const debugLog = document.getElementById('debugLog');
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+
+        function addDebugMessage(msg, type = 'log') {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            div.style.color = type === 'error' ? '#ef4444' : type === 'warn' ? '#f59e0b' : '#22c55e';
+            debugLog.appendChild(div);
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalConsole.log.apply(console, args);
+            addDebugMessage(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalConsole.error.apply(console, args);
+            addDebugMessage(args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalConsole.warn.apply(console, args);
+            addDebugMessage(args.join(' '), 'warn');
+        };
+
+        // Arc Gallery Code
+        const productImages = [
+            'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&h=400&fit=crop',
+        ];
+
+        function initArcGallery() {
+            console.log('🎨 Starting Arc Gallery initialization...');
+
+            const container = document.querySelector('.arc-gallery-ring');
+            if (!container) {
+                console.error('❌ Container not found!');
+                return;
+            }
+
+            console.log('✅ Container found');
+
+            const getResponsiveDimensions = () => {
+                const width = window.innerWidth;
+                if (width < 640) {
+                    return { radius: 260, cardSize: 80 };
+                } else if (width < 1024) {
+                    return { radius: 360, cardSize: 100 };
+                } else {
+                    return { radius: 480, cardSize: 120 };
+                }
+            };
+
+            const renderArcGallery = () => {
+                console.log('🔄 Rendering gallery...');
+                container.innerHTML = '';
+
+                const { radius, cardSize } = getResponsiveDimensions();
+                const startAngle = 20;
+                const endAngle = 160;
+                const count = productImages.length;
+                const step = (endAngle - startAngle) / (count - 1);
+
+                console.log(`📐 radius=${radius}, cardSize=${cardSize}`);
+
+                productImages.forEach((src, i) => {
+                    const angle = startAngle + step * i;
+                    const angleRad = (angle * Math.PI) / 180;
+                    const x = Math.cos(angleRad) * radius;
+                    const y = Math.sin(angleRad) * radius;
+
+                    const card = document.createElement('div');
+                    card.className = 'arc-gallery-card';
+                    card.style.width = `${cardSize}px`;
+                    card.style.height = `${cardSize}px`;
+                    card.style.left = `calc(50% + ${x}px)`;
+                    card.style.bottom = `${y}px`;
+                    card.style.animationDelay = `${i * 100}ms`;
+                    card.style.zIndex = count - i;
+
+                    const cardInner = document.createElement('div');
+                    cardInner.className = 'arc-gallery-card-inner';
+                    cardInner.style.transform = `rotate(${angle / 4}deg)`;
+
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = `Product ${i + 1}`;
+                    img.draggable = false;
+
+                    img.onload = () => console.log(`✅ Image ${i + 1} loaded`);
+                    img.onerror = function() {
+                        console.warn(`⚠️ Image ${i + 1} failed`);
+                        this.src = 'https://placehold.co/400x400/1a1a1a/3b82f6?text=Product';
+                    };
+
+                    cardInner.appendChild(img);
+                    card.appendChild(cardInner);
+                    container.appendChild(card);
+                });
+
+                console.log(`✨ Created ${count} cards!`);
+                container.offsetHeight;
+            };
+
+            renderArcGallery();
+
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    console.log('📱 Resized, re-rendering...');
+                    renderArcGallery();
+                }, 200);
+            });
+
+            console.log('✅ Arc Gallery initialized!');
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initArcGallery);
+        } else {
+            initArcGallery();
+        }
+    </script>
+</body>
+</html>

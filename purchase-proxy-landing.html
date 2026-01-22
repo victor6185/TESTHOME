@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글로벌 구매대행 서비스 - 당신이 원하는 모든 것을 직구해드립니다</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --bg-card-hover: #252525;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --border-color: #27272a;
+            --success-color: #22c55e;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        body.animation-complete {
+            overflow-y: auto;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 600;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero Section with Rotating Carousel */
+        .scroll-morph-hero {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(to bottom, var(--bg-dark), var(--bg-dark), var(--bg-dark));
+        }
+
+        /* Animated background gradients */
+        .hero-bg-gradient {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .hero-bg-gradient-1 {
+            top: 0;
+            right: 0;
+            width: 24rem;
+            height: 24rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent);
+            animation-delay: 0s;
+        }
+
+        .hero-bg-gradient-2 {
+            bottom: 0;
+            left: 0;
+            width: 24rem;
+            height: 24rem;
+            background: linear-gradient(315deg, rgba(59, 130, 246, 0.1), transparent);
+            animation-delay: 2s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Carousel Container */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 500px;
+            margin-bottom: 4rem;
+            perspective: 1000px;
+        }
+
+        .carousel-cards-wrapper {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+        }
+
+        /* Rotating Image Cards */
+        .rotating-card {
+            position: absolute;
+            width: 160px;
+            height: 192px;
+            transition: transform 0.3s ease-out;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .rotating-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+            transform-style: preserve-3d;
+        }
+
+        .rotating-card:hover .rotating-card-inner {
+            transform: scale(1.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .rotating-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s;
+        }
+
+        .rotating-card:hover img {
+            transform: scale(1.1);
+        }
+
+        /* Shine effect on hover */
+        .rotating-card-shine {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent, transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .rotating-card:hover .rotating-card-shine {
+            opacity: 1;
+        }
+
+        /* Hero Content */
+        .hero-content-section {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        /* CTA Button */
+        .hero-cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+
+        .hero-cta-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6);
+        }
+
+        .hero-cta-button:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .hero-cta-icon {
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .hero-cta-button:hover .hero-cta-icon {
+            transform: translateX(4px);
+        }
+
+        /* Features Grid */
+        .hero-features {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .hero-feature-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: rgba(26, 26, 26, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(39, 39, 42, 0.5);
+            transition: all 0.3s;
+        }
+
+        .hero-feature-card:hover {
+            background: rgba(26, 26, 26, 0.8);
+            border-color: var(--border-color);
+            transform: translateY(-4px);
+        }
+
+        .hero-feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .hero-feature-card:hover .hero-feature-title {
+            color: var(--primary-color);
+        }
+
+        .hero-feature-description {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Real-time Participation Counter */
+        .participation-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            margin: 4rem auto;
+            max-width: 1200px;
+        }
+
+        .participation-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            margin-bottom: 1rem;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .participation-counter {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin: 1rem 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 40px;
+            background: var(--bg-dark);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #2563eb);
+            border-radius: 20px;
+            transition: width 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            color: white;
+            z-index: 1;
+        }
+
+        /* Charts Container */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Product Voting */
+        .voting-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .voting-item {
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voting-item.goal-achieved {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05));
+            border: 2px solid var(--success-color);
+        }
+
+        .voting-item:hover {
+            transform: translateX(5px);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .voting-item.goal-achieved:hover {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .voting-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .voting-left {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .voting-info {
+            flex: 1;
+        }
+
+        .voting-rank {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-right: 1rem;
+        }
+
+        .voting-item.goal-achieved .voting-rank {
+            color: var(--success-color);
+        }
+
+        .voting-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .voting-votes {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .voting-progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(39, 39, 42, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .voting-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #2563eb);
+            border-radius: 4px;
+            transition: width 0.5s ease-out;
+            position: relative;
+        }
+
+        .voting-item.goal-achieved .voting-progress-bar {
+            background: linear-gradient(90deg, var(--success-color), #16a34a);
+        }
+
+        .voting-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .voting-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .voting-goal-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .voting-item.goal-achieved .voting-goal-text {
+            color: var(--success-color);
+            font-weight: 700;
+        }
+
+        .discount-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            background: linear-gradient(135deg, var(--success-color), #16a34a);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+            }
+        }
+
+        .voting-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .vote-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .vote-button:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .vote-button:disabled {
+            background: var(--bg-card);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Group Purchase Survey */
+        .survey-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .survey-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .survey-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .survey-option.selected {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .survey-checkbox {
+            width: 24px;
+            height: 24px;
+            margin-right: 1rem;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .survey-label {
+            flex: 1;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .survey-count {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Recent Activity Feed */
+        .activity-feed {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 3rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-user {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .activity-action {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            min-width: 300px;
+            animation: toastIn 0.3s ease-out;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.success {
+            border-left-color: var(--success-color);
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-message {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .cta-button {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Stats Section */
+        .stats {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Section */
+        .section {
+            max-width: 1200px;
+            margin: 6rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            margin-bottom: 4rem;
+        }
+
+        /* Chart Section */
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        #demandChart {
+            max-height: 400px;
+        }
+
+        /* Form Section */
+        .form-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .submit-button {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            padding: 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .submit-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Product Categories */
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .category-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-card:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
+            background: var(--bg-card-hover);
+        }
+
+
+        .category-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem 2rem;
+            margin-top: 6rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary-color);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* Chatbot Button */
+        .chatbot-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 1rem 1.5rem;
+            background: var(--primary-color);
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            z-index: 1000;
+            color: white;
+        }
+
+        .chatbot-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .carousel-container {
+                height: 350px;
+                margin-bottom: 2rem;
+            }
+
+            .rotating-card {
+                width: 100px;
+                height: 120px;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-description {
+                font-size: 1rem;
+            }
+
+            .hero-features {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            .participation-counter {
+                font-size: 2.5rem;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+
+            .voting-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .voting-rank {
+                font-size: 1.5rem;
+            }
+
+            .vote-button {
+                width: 100%;
+            }
+
+            .discount-badge {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            .toast-container {
+                right: 10px;
+                left: 10px;
+            }
+
+            .toast {
+                min-width: auto;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .carousel-container {
+                height: 400px;
+            }
+
+            .rotating-card {
+                width: 130px;
+                height: 156px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Success Message */
+        .success-message {
+            display: none;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+
+    <!-- Preload key images for faster rendering -->
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=400&fit=crop">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&h=400&fit=crop">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">글로벌구매대행</div>
+            <ul class="nav-links">
+                <li><a href="#service">서비스</a></li>
+                <li><a href="#chart">인기상품</a></li>
+                <li><a href="#request">구매신청</a></li>
+                <li><a href="#contact">문의</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section with Rotating Carousel -->
+    <section class="scroll-morph-hero" id="hero">
+        <!-- Animated background gradients -->
+        <div class="hero-bg-gradient hero-bg-gradient-1"></div>
+        <div class="hero-bg-gradient hero-bg-gradient-2"></div>
+
+        <!-- Rotating Carousel -->
+        <div class="carousel-container">
+            <div class="carousel-cards-wrapper" id="carouselCards"></div>
+        </div>
+
+        <!-- Hero Content -->
+        <div class="hero-content-section">
+            <h1 class="hero-title">세계 최고의 상품을<br>빠르고 안전하게</h1>
+            <p class="hero-description">
+                미국, 일본, 유럽의 인기 브랜드부터 한정판까지<br>
+                전문가가 직접 구매하고 검수하여 배송해드립니다
+            </p>
+            <button class="hero-cta-button" onclick="scrollToForm()">
+                지금 시작하기
+                <span class="hero-cta-icon">→</span>
+            </button>
+        </div>
+
+        <!-- Features -->
+        <div class="hero-features">
+            <div class="hero-feature-card">
+                <h3 class="hero-feature-title">합리적인 가격</h3>
+                <p class="hero-feature-description">투명한 수수료와 최저가 보장으로 합리적인 가격을 제공합니다</p>
+            </div>
+            <div class="hero-feature-card">
+                <h3 class="hero-feature-title">빠른 배송</h3>
+                <p class="hero-feature-description">평균 7일 이내 배송, 실시간 추적으로 안심하고 기다리세요</p>
+            </div>
+            <div class="hero-feature-card">
+                <h3 class="hero-feature-title">전문 검수</h3>
+                <p class="hero-feature-description">모든 상품을 전문팀이 꼼꼼히 검수하여 완벽한 상태로 전달합니다</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-number">15,000+</div>
+            <div class="stat-label">누적 구매대행 건수</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">98.7%</div>
+            <div class="stat-label">고객 만족도</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">7일</div>
+            <div class="stat-label">평균 배송 기간</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">실시간 고객 지원</div>
+        </div>
+    </section>
+
+    <!-- Real-time Participation Section -->
+    <section class="section">
+        <div class="participation-section">
+            <div class="participation-header">
+                <div class="live-indicator">
+                    <span class="live-dot"></span>
+                    <span style="color: #ef4444; font-weight: 700;">LIVE</span>
+                </div>
+                <h2 class="section-title" style="margin: 0;">실시간 참여 현황</h2>
+                <p class="section-subtitle">지금 이 순간에도 많은 분들이 함께하고 있습니다</p>
+                <div class="participation-counter" id="participationCounter">8,247</div>
+                <p style="color: var(--text-secondary);">명이 현재 참여 중</p>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 82%;">
+                    <span class="progress-text">목표 달성 82% (8,247 / 10,000명)</span>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3 class="chart-title">시간대별 참여 추이</h3>
+                    <canvas id="timelineChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">카테고리별 관심도</h3>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Voting Section -->
+    <section class="section">
+        <h2 class="section-title">인기 제품 투표 & 공동구매</h2>
+        <p class="section-subtitle">1,000명 달성 시 <strong style="color: var(--success-color);">10% 할인</strong> 혜택!</p>
+
+        <div class="voting-section" id="votingSection">
+            <!-- Voting items will be dynamically generated -->
+        </div>
+    </section>
+
+    <!-- Group Purchase Survey -->
+    <section class="section">
+        <h2 class="section-title">공동구매 수요 조사</h2>
+        <p class="section-subtitle">관심있는 카테고리를 모두 선택해주세요 (복수 선택 가능)</p>
+
+        <div class="survey-section">
+            <div class="survey-option" onclick="toggleSurvey('fashion')">
+                <input type="checkbox" class="survey-checkbox" id="survey-fashion">
+                <label class="survey-label" for="survey-fashion">패션/의류</label>
+                <span class="survey-count"><span id="count-fashion">2,341</span>명 선택</span>
+            </div>
+            <div class="survey-option" onclick="toggleSurvey('beauty')">
+                <input type="checkbox" class="survey-checkbox" id="survey-beauty">
+                <label class="survey-label" for="survey-beauty">뷰티/화장품</label>
+                <span class="survey-count"><span id="count-beauty">1,987</span>명 선택</span>
+            </div>
+            <div class="survey-option" onclick="toggleSurvey('electronics')">
+                <input type="checkbox" class="survey-checkbox" id="survey-electronics">
+                <label class="survey-label" for="survey-electronics">전자기기</label>
+                <span class="survey-count"><span id="count-electronics">1,756</span>명 선택</span>
+            </div>
+            <div class="survey-option" onclick="toggleSurvey('sports')">
+                <input type="checkbox" class="survey-checkbox" id="survey-sports">
+                <label class="survey-label" for="survey-sports">스포츠/아웃도어</label>
+                <span class="survey-count"><span id="count-sports">1,432</span>명 선택</span>
+            </div>
+            <div class="survey-option" onclick="toggleSurvey('home')">
+                <input type="checkbox" class="survey-checkbox" id="survey-home">
+                <label class="survey-label" for="survey-home">홈/리빙</label>
+                <span class="survey-count"><span id="count-home">1,298</span>명 선택</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Activity Feed -->
+    <section class="section">
+        <h2 class="section-title">최근 참여 현황</h2>
+        <p class="section-subtitle">실시간으로 업데이트되는 참여 현황을 확인하세요</p>
+
+        <div class="activity-feed" id="activityFeed">
+            <!-- Activities will be dynamically inserted here -->
+        </div>
+    </section>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Features Section -->
+    <section class="section" id="service">
+        <h2 class="section-title">왜 저희를 선택해야 할까요?</h2>
+        <p class="section-subtitle">안전하고 투명한 구매대행 서비스를 제공합니다</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3 class="feature-title">합리적인 수수료</h3>
+                <p class="feature-description">상품가의 10%만! 최저가 보장과 함께 가격 차이 보상 제도를 운영합니다.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">안전한 거래</h3>
+                <p class="feature-description">에스크로 결제 시스템으로 상품 수령 후 결제 확정. 100% 구매자 보호 보장.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">빠른 배송</h3>
+                <p class="feature-description">해외 직배송 및 묶음배송 가능. 실시간 배송 추적으로 언제든지 확인 가능.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">전문 상담</h3>
+                <p class="feature-description">AI 챗봇과 전문 상담사가 24시간 대기. 구매부터 배송까지 모든 과정 지원.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">전 세계 커버</h3>
+                <p class="feature-description">미국, 일본, 영국, 독일 등 30개국 이상의 쇼핑몰에서 구매 가능.</p>
+            </div>
+            <div class="feature-card">
+                <h3 class="feature-title">품질 검수</h3>
+                <p class="feature-description">전문 검수팀이 상품 수령 시 꼼꼼히 확인. 불량품은 즉시 교환 처리.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Categories -->
+    <section class="section">
+        <h2 class="section-title">인기 카테고리</h2>
+        <p class="section-subtitle">가장 많이 찾는 상품군을 확인하세요</p>
+
+        <div class="categories">
+            <div class="category-card">
+                <div class="category-name">스니커즈</div>
+            </div>
+            <div class="category-card">
+                <div class="category-name">화장품</div>
+            </div>
+            <div class="category-card">
+                <div class="category-name">명품백</div>
+            </div>
+            <div class="category-card">
+                <div class="category-name">전자기기</div>
+            </div>
+            <div class="category-card">
+                <div class="category-name">의류</div>
+            </div>
+            <div class="category-card">
+                <div class="category-name">게임/토이</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real-time Demand Chart -->
+    <section class="section" id="chart">
+        <h2 class="section-title">실시간 인기 상품 현황</h2>
+        <p class="section-subtitle">지금 가장 많이 신청되는 제품을 확인하세요</p>
+
+        <div class="chart-container">
+            <canvas id="demandChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Request Form -->
+    <section class="section" id="request">
+        <h2 class="section-title">구매대행 신청하기</h2>
+        <p class="section-subtitle">원하는 상품 정보를 입력해주시면 24시간 내 견적을 보내드립니다</p>
+
+        <div class="form-container">
+            <form id="purchaseForm" onsubmit="submitForm(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">이름 *</label>
+                        <input type="text" class="form-input" name="name" required placeholder="홍길동">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">연락처 *</label>
+                        <input type="tel" class="form-input" name="phone" required placeholder="010-1234-5678">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">이메일 *</label>
+                    <input type="email" class="form-input" name="email" required placeholder="example@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">구매 희망 상품 *</label>
+                    <input type="text" class="form-input" name="product" required placeholder="나이키 에어포스 1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">상품 URL *</label>
+                    <input type="url" class="form-input" name="url" required placeholder="https://www.amazon.com/...">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">수량 *</label>
+                        <input type="number" class="form-input" name="quantity" required min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">예산 *</label>
+                        <input type="text" class="form-input" name="budget" required placeholder="100,000원">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">구매 국가 *</label>
+                        <select class="form-select" name="country" required>
+                            <option value="">선택하세요</option>
+                            <option value="미국">미국</option>
+                            <option value="일본">일본</option>
+                            <option value="유럽">유럽</option>
+                            <option value="중국">중국</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">배송 방법 *</label>
+                        <select class="form-select" name="delivery" required>
+                            <option value="">선택하세요</option>
+                            <option value="항공 특송">항공 특송</option>
+                            <option value="일반 항공">일반 항공</option>
+                            <option value="해운">해운</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">상세 요청사항</label>
+                    <textarea class="form-textarea" name="message" placeholder="옵션, 색상, 사이즈 등 상세한 요청사항을 입력해주세요.&#10;예: 화이트 컬러, 270mm (US 9)"></textarea>
+                </div>
+
+                <button type="submit" class="submit-button">견적 신청하기</button>
+
+                <div class="success-message" id="successMessage">
+                    신청이 완료되었습니다! 24시간 내에 연락드리겠습니다.
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>글로벌구매대행</h3>
+                <p style="color: var(--text-secondary); line-height: 1.8;">
+                    전 세계 어디서든 원하는 상품을<br>
+                    안전하고 빠르게 배송해드립니다.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>서비스</h3>
+                <ul>
+                    <li><a href="#service">구매대행 안내</a></li>
+                    <li><a href="#chart">인기 상품</a></li>
+                    <li><a href="#request">신청하기</a></li>
+                    <li><a href="#">배송 추적</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>고객지원</h3>
+                <ul>
+                    <li><a href="#">자주 묻는 질문</a></li>
+                    <li><a href="#">이용 가이드</a></li>
+                    <li><a href="#">환불 정책</a></li>
+                    <li><a href="#">1:1 문의</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>연락처</h3>
+                <ul>
+                    <li style="color: var(--text-secondary);">이메일: support@globalbuy.com</li>
+                    <li style="color: var(--text-secondary);">전화: 1588-1234</li>
+                    <li style="color: var(--text-secondary);">카카오톡: @글로벌구매</li>
+                    <li style="color: var(--text-secondary);">운영시간: 24시간 연중무휴</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 글로벌구매대행. All rights reserved. | <a href="#" style="color: var(--text-secondary);">개인정보처리방침</a> | <a href="#" style="color: var(--text-secondary);">이용약관</a></p>
+        </div>
+    </footer>
+
+    <!-- Chatbot Button -->
+    <button class="chatbot-button" onclick="openChat()" title="24시간 AI 상담">
+        상담
+    </button>
+
+    <script>
+        // Rotating Carousel Hero - Product Images
+        const carouselImages = [
+            {
+                id: '1',
+                src: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=500&fit=crop',
+                alt: '나이키 스니커즈',
+                rotation: -15
+            },
+            {
+                id: '2',
+                src: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400&h=500&fit=crop',
+                alt: '명품 핸드백',
+                rotation: -8
+            },
+            {
+                id: '3',
+                src: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop',
+                alt: '럭셔리 시계',
+                rotation: 5
+            },
+            {
+                id: '4',
+                src: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=500&fit=crop',
+                alt: '선글라스',
+                rotation: 12
+            },
+            {
+                id: '5',
+                src: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=500&fit=crop',
+                alt: '화장품',
+                rotation: -12
+            },
+            {
+                id: '6',
+                src: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=500&fit=crop',
+                alt: '헤드폰',
+                rotation: 8
+            },
+            {
+                id: '7',
+                src: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400&h=500&fit=crop',
+                alt: '운동화',
+                rotation: -5
+            },
+            {
+                id: '8',
+                src: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=500&fit=crop',
+                alt: '아이폰',
+                rotation: 3
+            }
+        ];
+
+        let rotationAngles = [];
+        let mousePosition = { x: 0.5, y: 0.5 };
+        let isHovering = false;
+
+        function initRotatingCarousel() {
+            console.log('🎨 Initializing Rotating Carousel...');
+
+            const container = document.getElementById('carouselCards');
+            if (!container) {
+                console.error('❌ Carousel container not found!');
+                return;
+            }
+
+            // Initialize rotation angles
+            rotationAngles = carouselImages.map((_, i) => i * (360 / carouselImages.length));
+
+            // Create cards
+            carouselImages.forEach((image, index) => {
+                const card = document.createElement('div');
+                card.className = 'rotating-card';
+                card.setAttribute('data-index', index);
+
+                const cardInner = document.createElement('div');
+                cardInner.className = 'rotating-card-inner';
+
+                const img = document.createElement('img');
+                img.src = image.src;
+                img.alt = image.alt;
+                img.draggable = false;
+
+                const shine = document.createElement('div');
+                shine.className = 'rotating-card-shine';
+
+                cardInner.appendChild(img);
+                cardInner.appendChild(shine);
+                card.appendChild(cardInner);
+                container.appendChild(card);
+
+                console.log(`✅ Card ${index + 1} created`);
+            });
+
+            // Mouse tracking
+            const heroSection = document.querySelector('.scroll-morph-hero');
+            heroSection.addEventListener('mousemove', (e) => {
+                const rect = heroSection.getBoundingClientRect();
+                mousePosition.x = (e.clientX - rect.left) / rect.width;
+                mousePosition.y = (e.clientY - rect.top) / rect.height;
+            });
+
+            // Start animation
+            animateCarousel();
+
+            console.log('✅ Rotating Carousel initialized successfully');
+        }
+
+        function animateCarousel() {
+            const container = document.getElementById('carouselCards');
+            if (!container) return;
+
+            const cards = container.querySelectorAll('.rotating-card');
+            const radius = window.innerWidth < 768 ? 140 : 180;
+
+            // Update rotation angles (much slower rotation speed)
+            rotationAngles = rotationAngles.map(angle => (angle + 0.04) % 360);
+
+            cards.forEach((card, index) => {
+                const angle = (rotationAngles[index] * Math.PI) / 180;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                // 3D perspective effect based on mouse position
+                const perspectiveX = (mousePosition.x - 0.5) * 15;
+                const perspectiveY = (mousePosition.y - 0.5) * 15;
+
+                const imageRotation = carouselImages[index].rotation;
+
+                card.style.transform = `
+                    translate(${x}px, ${y}px)
+                    rotateX(${perspectiveY}deg)
+                    rotateY(${perspectiveX}deg)
+                    rotateZ(${imageRotation}deg)
+                `;
+            });
+
+            requestAnimationFrame(animateCarousel);
+        }
+
+        // Initialize Carousel when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initRotatingCarousel);
+        } else {
+            initRotatingCarousel();
+        }
+
+        // Enable scroll after animation completes
+        setTimeout(() => {
+            document.body.classList.add('animation-complete');
+            console.log('🎉 Animation complete! Scroll enabled.');
+        }, 2000);
+
+        // Real-time Participation Counter
+        let participationCount = 8247;
+        const targetCount = 10000;
+
+        function updateParticipationCounter() {
+            const change = Math.floor(Math.random() * 5) - 1; // -1 to 3
+            participationCount = Math.max(8000, Math.min(targetCount, participationCount + change));
+
+            const counterEl = document.getElementById('participationCounter');
+            if (counterEl) {
+                counterEl.textContent = participationCount.toLocaleString();
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                const percentage = (participationCount / targetCount * 100).toFixed(0);
+                progressBar.style.width = `${percentage}%`;
+                progressBar.querySelector('.progress-text').textContent =
+                    `목표 달성 ${percentage}% (${participationCount.toLocaleString()} / ${targetCount.toLocaleString()}명)`;
+            }
+        }
+
+        setInterval(updateParticipationCounter, 3000);
+
+        // Timeline Chart
+        const timelineCtx = document.getElementById('timelineChart');
+        if (timelineCtx) {
+            const timelineChart = new Chart(timelineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    datasets: [{
+                        label: '참여자 수',
+                        data: [234, 189, 456, 823, 967, 1245, 1432],
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(51, 65, 85, 0.3)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update timeline chart periodically
+            setInterval(() => {
+                const lastValue = timelineChart.data.datasets[0].data[timelineChart.data.datasets[0].data.length - 1];
+                const newValue = lastValue + Math.floor(Math.random() * 20) - 5;
+                timelineChart.data.datasets[0].data.shift();
+                timelineChart.data.datasets[0].data.push(Math.max(0, newValue));
+                timelineChart.update();
+            }, 5000);
+        }
+
+        // Category Doughnut Chart
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['패션/의류', '뷰티/화장품', '전자기기', '스포츠', '홈/리빙'],
+                    datasets: [{
+                        data: [2341, 1987, 1756, 1432, 1298],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(236, 72, 153, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(251, 146, 60, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#0a0a0a'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#f1f5f9',
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed.toLocaleString() + '명';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Voting System with Goal Achievement
+        const votedProducts = new Set();
+        const GOAL_TARGET = 1000;
+        const DISCOUNT_RATE = 10;
+
+        const products = [
+            { id: 'airpods', name: '애플 에어팟 프로 2세대', votes: 1234, rank: 1 },
+            { id: 'dyson', name: '다이슨 에어랩 스타일러', votes: 987, rank: 2 },
+            { id: 'nike', name: '나이키 조던 1 레트로 하이', votes: 856, rank: 3 },
+            { id: 'macbook', name: '맥북 프로 M3', votes: 723, rank: 4 },
+            { id: 'ps5', name: '플레이스테이션 5', votes: 689, rank: 5 }
+        ];
+
+        function initVotingSection() {
+            const container = document.getElementById('votingSection');
+            if (!container) return;
+
+            container.innerHTML = products.map(product => {
+                const percentage = Math.min(100, (product.votes / GOAL_TARGET * 100)).toFixed(1);
+                const isGoalAchieved = product.votes >= GOAL_TARGET;
+
+                return `
+                    <div class="voting-item ${isGoalAchieved ? 'goal-achieved' : ''}" data-product="${product.id}">
+                        <div class="voting-header">
+                            <div class="voting-left">
+                                <span class="voting-rank">${product.rank}</span>
+                                <div class="voting-info">
+                                    <div class="voting-name">${product.name}</div>
+                                    <div class="voting-votes"><span id="votes-${product.id}">${product.votes.toLocaleString()}</span>명 참여</div>
+                                </div>
+                            </div>
+                            ${isGoalAchieved ? `<div class="discount-badge">🎉 ${DISCOUNT_RATE}% 할인</div>` : ''}
+                        </div>
+
+                        <div class="voting-progress-container">
+                            <div class="voting-progress-bar" id="progress-${product.id}" style="width: ${percentage}%"></div>
+                        </div>
+
+                        <div class="voting-footer">
+                            <span class="voting-goal-text" id="goal-text-${product.id}">
+                                ${isGoalAchieved ?
+                                    `✓ 목표 달성! ${DISCOUNT_RATE}% 할인 적용` :
+                                    `${(GOAL_TARGET - product.votes).toLocaleString()}명 더 필요 (${percentage}%)`
+                                }
+                            </span>
+                        </div>
+
+                        <div class="voting-actions">
+                            <button class="vote-button" onclick="vote('${product.id}')">
+                                ${isGoalAchieved ? '할인받고 구매하기' : '투표하기'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function vote(productId) {
+            if (votedProducts.has(productId)) {
+                showToast('이미 투표하셨습니다', '각 상품당 1번만 투표 가능합니다', 'error');
+                return;
+            }
+
+            votedProducts.add(productId);
+
+            // Find product and update votes
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const wasGoalAchieved = product.votes >= GOAL_TARGET;
+            product.votes++;
+            const isGoalAchieved = product.votes >= GOAL_TARGET;
+
+            // Update UI
+            updateProductUI(productId, product.votes);
+
+            // Check if goal just achieved
+            if (!wasGoalAchieved && isGoalAchieved) {
+                showToast(
+                    '🎉 목표 달성!',
+                    `${product.name}이(가) ${GOAL_TARGET}명을 달성했습니다! ${DISCOUNT_RATE}% 할인이 적용됩니다!`,
+                    'success'
+                );
+                addActivity('목표 달성', `"${product.name}" ${DISCOUNT_RATE}% 할인 달성!`);
+
+                // Add confetti effect
+                const item = document.querySelector(`[data-product="${productId}"]`);
+                if (item) {
+                    item.classList.add('goal-achieved');
+                }
+            } else {
+                showToast('투표 완료!', '소중한 의견 감사합니다', 'success');
+                addActivity('투표', `"${product.name}" 상품에 투표했습니다`);
+            }
+
+            // Disable button
+            const button = document.querySelector(`[data-product="${productId}"] .vote-button`);
+            if (button) {
+                button.disabled = true;
+                button.textContent = '투표 완료';
+            }
+        }
+
+        function updateProductUI(productId, votes) {
+            const voteElement = document.getElementById(`votes-${productId}`);
+            if (voteElement) {
+                voteElement.textContent = votes.toLocaleString();
+            }
+
+            const percentage = Math.min(100, (votes / GOAL_TARGET * 100)).toFixed(1);
+            const progressBar = document.getElementById(`progress-${productId}`);
+            if (progressBar) {
+                progressBar.style.width = `${percentage}%`;
+            }
+
+            const isGoalAchieved = votes >= GOAL_TARGET;
+            const goalText = document.getElementById(`goal-text-${productId}`);
+            if (goalText) {
+                if (isGoalAchieved) {
+                    goalText.textContent = `✓ 목표 달성! ${DISCOUNT_RATE}% 할인 적용`;
+                    goalText.style.color = 'var(--success-color)';
+                    goalText.style.fontWeight = '700';
+                } else {
+                    goalText.textContent = `${(GOAL_TARGET - votes).toLocaleString()}명 더 필요 (${percentage}%)`;
+                }
+            }
+
+            // Update discount badge
+            if (isGoalAchieved) {
+                const votingHeader = document.querySelector(`[data-product="${productId}"] .voting-header`);
+                if (votingHeader && !votingHeader.querySelector('.discount-badge')) {
+                    const badge = document.createElement('div');
+                    badge.className = 'discount-badge';
+                    badge.innerHTML = `🎉 ${DISCOUNT_RATE}% 할인`;
+                    votingHeader.appendChild(badge);
+                }
+            }
+        }
+
+        // Simulate random votes
+        function simulateRandomVote() {
+            const randomProduct = products[Math.floor(Math.random() * products.length)];
+            if (randomProduct.votes < GOAL_TARGET + 200) {
+                randomProduct.votes += Math.floor(Math.random() * 3);
+                updateProductUI(randomProduct.id, randomProduct.votes);
+
+                // Check if just achieved goal
+                if (randomProduct.votes === GOAL_TARGET || randomProduct.votes === GOAL_TARGET + 1) {
+                    const item = document.querySelector(`[data-product="${randomProduct.id}"]`);
+                    if (item && !item.classList.contains('goal-achieved')) {
+                        item.classList.add('goal-achieved');
+                        addActivity('목표 달성', `"${randomProduct.name}" ${DISCOUNT_RATE}% 할인 달성!`);
+                    }
+                }
+            }
+        }
+
+        // Initialize voting section
+        initVotingSection();
+
+        // Simulate votes every 4 seconds
+        setInterval(simulateRandomVote, 4000);
+
+        function getProductName(productId) {
+            const product = products.find(p => p.id === productId);
+            return product ? product.name : productId;
+        }
+
+        // Survey System
+        const selectedSurveys = new Set();
+
+        function toggleSurvey(category) {
+            const checkbox = document.getElementById(`survey-${category}`);
+            const option = checkbox.parentElement;
+
+            checkbox.checked = !checkbox.checked;
+
+            if (checkbox.checked) {
+                selectedSurveys.add(category);
+                option.classList.add('selected');
+
+                // Increment count
+                const countEl = document.getElementById(`count-${category}`);
+                if (countEl) {
+                    const current = parseInt(countEl.textContent.replace(',', ''));
+                    countEl.textContent = (current + 1).toLocaleString();
+                }
+
+                showToast('선택 완료', `${getCategoryName(category)} 카테고리가 선택되었습니다`, 'success');
+                addActivity('설문 참여', `"${getCategoryName(category)}" 카테고리 선택`);
+            } else {
+                selectedSurveys.delete(category);
+                option.classList.remove('selected');
+
+                // Decrement count
+                const countEl = document.getElementById(`count-${category}`);
+                if (countEl) {
+                    const current = parseInt(countEl.textContent.replace(',', ''));
+                    countEl.textContent = (current - 1).toLocaleString();
+                }
+            }
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'fashion': '패션/의류',
+                'beauty': '뷰티/화장품',
+                'electronics': '전자기기',
+                'sports': '스포츠/아웃도어',
+                'home': '홈/리빙'
+            };
+            return names[category] || category;
+        }
+
+        // Activity Feed
+        const activityNames = ['김민수', '이지은', '박서준', '최유나', '정태양', '강민지', '윤호석', '한소희'];
+        const activityActions = [
+            { type: '투표', text: '상품 투표에 참여했습니다' },
+            { type: '설문', text: '수요조사에 참여했습니다' },
+            { type: '신청', text: '구매대행을 신청했습니다' },
+            { type: '가입', text: '서비스에 가입했습니다' }
+        ];
+
+        function addActivity(type, text) {
+            const feed = document.getElementById('activityFeed');
+            if (!feed) return;
+
+            const name = activityNames[Math.floor(Math.random() * activityNames.length)];
+            const activity = document.createElement('div');
+            activity.className = 'activity-item';
+            activity.innerHTML = `
+                <div class="activity-avatar">${name[0]}</div>
+                <div class="activity-content">
+                    <div class="activity-user">${name}</div>
+                    <div class="activity-action">${text}</div>
+                </div>
+                <div class="activity-time">방금 전</div>
+            `;
+
+            feed.insertBefore(activity, feed.firstChild);
+
+            // Keep only last 10 activities
+            while (feed.children.length > 10) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Generate random activities
+        function generateRandomActivity() {
+            const name = activityNames[Math.floor(Math.random() * activityNames.length)];
+            const action = activityActions[Math.floor(Math.random() * activityActions.length)];
+            addActivity(action.type, action.text);
+        }
+
+        // Add initial activities
+        for (let i = 0; i < 5; i++) {
+            generateRandomActivity();
+        }
+
+        // Add random activity every 8 seconds
+        setInterval(generateRandomActivity, 8000);
+
+        // Toast Notification System
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-header">
+                    ${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'} ${title}
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                toast.style.animation = 'toastIn 0.3s ease-out reverse';
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 4000);
+        }
+
+        // Chart.js - Real-time Demand Chart (전역 변수로 선언)
+        let demandChart = null;
+        const ctx = document.getElementById('demandChart');
+
+        // Initial data
+        let chartData = {
+            labels: ['나이키 에어포스', '디올 백', '아이폰15 Pro', '다이슨 청소기', '루이비통 지갑', '소니 PS5', '맥북 Pro'],
+            datasets: [{
+                label: '신청 건수 (오늘)',
+                data: [127, 89, 156, 73, 94, 112, 68],
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        };
+
+        if (ctx) {
+            const config = {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#f1f5f9',
+                                font: {
+                                    size: 14,
+                                    weight: 600
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' 신청 건수: ' + context.parsed.y + '건';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(51, 65, 85, 0.5)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            // 전역 변수에 할당
+            demandChart = new Chart(ctx, config);
+
+            // Simulate real-time updates every 5 seconds
+            setInterval(() => {
+                if (demandChart && chartData.datasets[0]) {
+                    chartData.datasets[0].data = chartData.datasets[0].data.map(value => {
+                        const change = Math.floor(Math.random() * 10) - 3; // -3 to +6
+                        return Math.max(0, value + change);
+                    });
+                    demandChart.update();
+                }
+            }, 5000);
+        }
+
+        // Form submission - Google Sheets Integration
+        async function submitForm(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+
+            // 제출 버튼 비활성화
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.textContent : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '전송 중...';
+            }
+
+            try {
+                // Google Apps Script 웹 앱 URL
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbxS6PUIqL6jb39awTrRtmDYHxUpF3BKerEA-RTWltF6zevfl2BexsE4nBdLVj0XJrZm8A/exec';
+
+                console.log('📤 데이터 전송 중:', data);
+
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors', // CORS 우회
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                // no-cors 모드에서는 응답을 읽을 수 없으므로 성공으로 간주
+                console.log('✅ 데이터 전송 완료');
+
+                showToast('신청 완료!', '구매대행 신청이 성공적으로 접수되었습니다.', 'success');
+                addActivity('구매신청', '구매대행을 신청했습니다');
+
+                // 폼 초기화
+                event.target.reset();
+
+                // 성공 메시지 표시
+                const successMessage = document.querySelector('.success-message');
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000);
+                }
+
+                // 차트 업데이트
+                if (demandChart && chartData.datasets[0]) {
+                    const categoryIndex = Math.floor(Math.random() * chartData.labels.length);
+                    chartData.datasets[0].data[categoryIndex] += 1;
+                    demandChart.update();
+                }
+
+            } catch (error) {
+                console.error('❌ 전송 오류:', error);
+                showToast('오류 발생', '신청 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+            } finally {
+                // 버튼 복원
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
+        }
+
+        // Smooth scroll to form
+        function scrollToForm() {
+            document.getElementById('request').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Chatbot function
+        function openChat() {
+            alert('AI 챗봇 상담을 시작합니다!\n\n실제 구현 시 Voiceflow, Chatbase 등의 챗봇 플랫폼을 연동하여 24시간 고객 상담이 가능합니다.\n\n주요 기능:\n- 상품 문의 자동 응답\n- 견적 계산 및 안내\n- 배송 추적 지원\n- 실시간 상담원 연결');
+
+            // 실제 구현 시 아래와 같이 챗봇 초기화
+            /*
+            window.voiceflow.chat.load({
+                verify: { projectID: 'YOUR_PROJECT_ID' },
+                url: 'https://general-runtime.voiceflow.com',
+                versionID: 'production'
+            });
+            */
+        }
+
+        // Add entrance animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.feature-card, .stat-card, .category-card').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s, transform 0.6s';
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
