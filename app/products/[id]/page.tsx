@@ -4,7 +4,9 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
-import { loadTossPayments, TossPaymentsInstance } from '@tosspayments/tosspayments-sdk';
+import { loadTossPayments } from '@tosspayments/tosspayments-sdk';
+
+type TossPaymentsInstance = Awaited<ReturnType<typeof loadTossPayments>>;
 import { getProduct, Product } from '@/lib/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 
