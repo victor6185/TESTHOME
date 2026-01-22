@@ -2,10 +2,12 @@
 
 import ChatBot from '@/components/ChatBot';
 import NewsSection from '@/components/NewsSection';
+import Header from '@/components/Header';
 
 export default function Home() {
   return (
     <div className="min-h-screen">
+      <Header />
       <ChatBot />
       {/* Hero Section */}
       <section className="hero-section">
@@ -253,6 +255,7 @@ export default function Home() {
           justify-content: center;
           text-align: center;
           padding: 2rem;
+          padding-top: 80px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
