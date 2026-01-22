@@ -1,8 +1,11 @@
 'use client';
 
+import ChatBot from '@/components/ChatBot';
+
 export default function Home() {
   return (
     <div className="min-h-screen">
+      <ChatBot />
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
