@@ -2,14 +2,67 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Header from '@/components/Header';
+import { createOrder } from '@/lib/firestore';
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const amount = searchParams.get('amount');
   const paymentKey = searchParams.get('paymentKey');
+  const orderCreated = useRef(false);
+  const [orderSaved, setOrderSaved] = useState(false);
+
+  useEffect(() => {
+    const saveOrder = async () => {
+      // 이미 주문이 생성되었으면 중복 생성 방지
+      if (orderCreated.current) return;
+
+      const pendingOrderStr = sessionStorage.getItem('pendingOrder');
+      if (!pendingOrderStr) {
+        // 이미 처리된 주문이거나 데이터가 없음
+        setOrderSaved(true);
+        return;
+      }
+
+      try {
+        const pendingOrder = JSON.parse(pendingOrderStr);
+
+        // orderId가 일치하는지 확인
+        if (pendingOrder.orderId !== orderId) {
+          console.log('주문 ID가 일치하지 않습니다.');
+          setOrderSaved(true);
+          return;
+        }
+
+        orderCreated.current = true;
+
+        // Firestore에 주문 생성
+        if (pendingOrder.userId) {
+          await createOrder({
+            userId: pendingOrder.userId,
+            productId: pendingOrder.productId,
+            productName: pendingOrder.productName,
+            quantity: pendingOrder.quantity,
+            totalAmount: pendingOrder.totalAmount,
+            status: '결제완료',
+            orderId: orderId || pendingOrder.orderId,
+            paymentKey: paymentKey || undefined,
+          });
+        }
+
+        // 처리 완료 후 sessionStorage에서 제거
+        sessionStorage.removeItem('pendingOrder');
+        setOrderSaved(true);
+      } catch (error) {
+        console.error('주문 저장 실패:', error);
+        setOrderSaved(true);
+      }
+    };
+
+    saveOrder();
+  }, [orderId, paymentKey]);
 
   return (
     <div className="page-container">
@@ -19,7 +72,9 @@ function PaymentSuccessContent() {
         <div className="success-card">
           <div className="success-icon">✅</div>
           <h1>결제가 완료되었습니다!</h1>
-          <p className="success-message">주문이 성공적으로 처리되었습니다</p>
+          <p className="success-message">
+            {orderSaved ? '주문이 성공적으로 처리되었습니다' : '주문을 처리하는 중...'}
+          </p>
 
           <div className="order-info">
             <div className="info-row">

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserOrders, Order, getUserAddresses, Address, updateUser } from '@/lib/firestore';
+import { getUserOrders, Order, getUserAddresses, Address, updateUser, addAddress, deleteAddress } from '@/lib/firestore';
 
 export default function MyPage() {
   const router = useRouter();
@@ -20,6 +20,14 @@ export default function MyPage() {
     newPassword: '',
   });
   const [saving, setSaving] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    detail: '',
+    isDefault: false,
+  });
 
   const tabs = [
     { id: 'orders', label: '주문 내역', icon: '📦' },
@@ -97,6 +105,53 @@ export default function MyPage() {
       alert('저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setAddressForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleAddressSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firebaseUser) return;
+
+    setSaving(true);
+    try {
+      await addAddress({
+        userId: firebaseUser.uid,
+        name: addressForm.name,
+        phone: addressForm.phone,
+        address: addressForm.address,
+        detail: addressForm.detail,
+        isDefault: addressForm.isDefault,
+      });
+      setShowAddressModal(false);
+      setAddressForm({ name: '', phone: '', address: '', detail: '', isDefault: false });
+      await loadUserData();
+      alert('배송지가 추가되었습니다.');
+    } catch (error) {
+      console.error('배송지 추가 실패:', error);
+      alert('배송지 추가 중 오류가 발생했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!confirm('이 배송지를 삭제하시겠습니까?')) return;
+
+    try {
+      await deleteAddress(addressId);
+      await loadUserData();
+      alert('배송지가 삭제되었습니다.');
+    } catch (error) {
+      console.error('배송지 삭제 실패:', error);
+      alert('배송지 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -292,7 +347,7 @@ export default function MyPage() {
               {activeTab === 'address' && (
                 <div className="address-section">
                   <h2>배송지 관리</h2>
-                  {addresses.length === 0 ? (
+                  {addresses.length === 0 && !showAddressModal ? (
                     <div className="empty-state">
                       <p>등록된 배송지가 없습니다.</p>
                     </div>
@@ -305,13 +360,85 @@ export default function MyPage() {
                         <p>{addr.address}</p>
                         <p>{addr.detail}</p>
                         <div className="address-actions">
-                          <button>수정</button>
-                          <button>삭제</button>
+                          <button onClick={() => handleDeleteAddress(addr.id!)}>삭제</button>
                         </div>
                       </div>
                     ))
                   )}
-                  <button className="add-address-btn">+ 새 배송지 추가</button>
+
+                  {showAddressModal && (
+                    <div className="address-form-card">
+                      <h3>새 배송지 추가</h3>
+                      <form onSubmit={handleAddressSubmit}>
+                        <div className="form-group">
+                          <label>받는 분</label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={addressForm.name}
+                            onChange={handleAddressChange}
+                            placeholder="이름을 입력하세요"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>연락처</label>
+                          <input
+                            type="tel"
+                            name="phone"
+                            value={addressForm.phone}
+                            onChange={handleAddressChange}
+                            placeholder="010-1234-5678"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>주소</label>
+                          <input
+                            type="text"
+                            name="address"
+                            value={addressForm.address}
+                            onChange={handleAddressChange}
+                            placeholder="도로명 주소를 입력하세요"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>상세주소</label>
+                          <input
+                            type="text"
+                            name="detail"
+                            value={addressForm.detail}
+                            onChange={handleAddressChange}
+                            placeholder="상세주소를 입력하세요"
+                          />
+                        </div>
+                        <label className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            name="isDefault"
+                            checked={addressForm.isDefault}
+                            onChange={handleAddressChange}
+                          />
+                          <span>기본 배송지로 설정</span>
+                        </label>
+                        <div className="form-buttons">
+                          <button type="button" className="cancel-btn" onClick={() => setShowAddressModal(false)}>
+                            취소
+                          </button>
+                          <button type="submit" className="save-btn" disabled={saving}>
+                            {saving ? '저장 중...' : '저장하기'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {!showAddressModal && (
+                    <button className="add-address-btn" onClick={() => setShowAddressModal(true)}>
+                      + 새 배송지 추가
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -691,6 +818,62 @@ export default function MyPage() {
         .add-address-btn:hover {
           border-color: #667eea;
           color: white;
+        }
+
+        .address-form-card {
+          background: #0f0f0f;
+          border: 1px solid #667eea;
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .address-form-card h3 {
+          font-size: 1.125rem;
+          margin-bottom: 1.5rem;
+          color: #667eea;
+        }
+
+        .checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1.5rem;
+          cursor: pointer;
+          color: #a1a1aa;
+        }
+
+        .checkbox-label input {
+          width: 18px;
+          height: 18px;
+          accent-color: #667eea;
+        }
+
+        .form-buttons {
+          display: flex;
+          gap: 1rem;
+        }
+
+        .cancel-btn {
+          flex: 1;
+          padding: 0.875rem;
+          background: transparent;
+          border: 1px solid #27272a;
+          border-radius: 8px;
+          color: #a1a1aa;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.3s;
+        }
+
+        .cancel-btn:hover {
+          border-color: #ef4444;
+          color: #ef4444;
+        }
+
+        .form-buttons .save-btn {
+          flex: 1;
+          padding: 0.875rem;
         }
 
         @media (max-width: 768px) {

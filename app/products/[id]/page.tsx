@@ -2,10 +2,10 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/Header';
 import { loadTossPayments, TossPaymentsInstance } from '@tosspayments/tosspayments-sdk';
-import { getProduct, Product, createOrder } from '@/lib/firestore';
+import { getProduct, Product } from '@/lib/firestore';
 import { useAuth } from '@/contexts/AuthContext';
 
 // 폴백용 상품 데이터
@@ -89,6 +89,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [tossPayments, setTossPayments] = useState<TossPaymentsInstance | null>(null);
+  const paymentInProgress = useRef(false);
 
   useEffect(() => {
     loadProduct();
@@ -209,25 +210,30 @@ export default function ProductDetailPage() {
       return;
     }
 
+    // 중복 결제 방지
+    if (paymentInProgress.current) {
+      console.log('결제가 이미 진행 중입니다.');
+      return;
+    }
+
+    paymentInProgress.current = true;
     setIsPaymentLoading(true);
 
     try {
       const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Firestore에 주문 생성 (결제 전)
-      if (firebaseUser) {
-        await createOrder({
-          userId: firebaseUser.uid,
-          productId: product.id || productId,
-          productName: product.name,
-          quantity: quantity,
-          totalAmount: totalPrice,
-          status: '결제완료',
-          orderId: orderId,
-        });
-      }
+      // 주문 정보를 sessionStorage에 저장 (결제 성공 시 사용)
+      const orderData = {
+        userId: firebaseUser?.uid || '',
+        productId: product.id || productId,
+        productName: product.name,
+        quantity: quantity,
+        totalAmount: totalPrice,
+        orderId: orderId,
+      };
+      sessionStorage.setItem('pendingOrder', JSON.stringify(orderData));
 
-      const payment = tossPayments.payment({ customerKey: `CUSTOMER_${Date.now()}` });
+      const payment = tossPayments.payment({ customerKey: `CUSTOMER_${firebaseUser?.uid || Date.now()}` });
 
       await payment.requestPayment({
         method: 'CARD',
@@ -249,6 +255,7 @@ export default function ProductDetailPage() {
         },
       });
     } catch (error: unknown) {
+      paymentInProgress.current = false;
       if (error && typeof error === 'object' && 'code' in error) {
         const tossError = error as { code: string; message: string };
         if (tossError.code === 'USER_CANCEL') {
