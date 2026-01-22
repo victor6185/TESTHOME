@@ -1,6 +1,7 @@
 'use client';
 
 import ChatBot from '@/components/ChatBot';
+import NewsSection from '@/components/NewsSection';
 
 export default function Home() {
   return (
@@ -87,6 +88,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* News Section */}
+      <NewsSection />
 
       {/* Popular Categories */}
       <section className="categories-section">
